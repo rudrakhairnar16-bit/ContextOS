@@ -40,6 +40,14 @@ os.environ.setdefault("SYSTEM_ROOT_DIRECTORY", os.path.join(cognee_root, "system
 os.environ.setdefault("CACHE_ROOT_DIRECTORY", os.path.join(cognee_root, "cache"))
 os.environ.setdefault("COGNEE_LOGS_DIR", os.path.join(cognee_root, "logs"))
 
+# --- Embedding Configuration ---
+# Cognee defaults to LiteLLM for embeddings (calls OpenAI API), which fails
+# because Groq doesn't support embeddings. Use FastEmbed (local) instead.
+
+os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
+os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
+
 import cognee
 
 # Programmatic Cognee configuration
@@ -49,6 +57,9 @@ cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/o
 cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
 cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
 cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
+cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
+cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
+cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
 
 def run_async(coro):
