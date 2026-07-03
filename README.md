@@ -72,16 +72,20 @@ venv\Scripts\activate
 pip install streamlit cognee python-dotenv openai
 ```
 
-2. **Configure `.env`:** (required)
+2. **Get your own API key** — Sign up at [console.groq.com](https://console.groq.com) and create a free API key.
+
+3. **Configure `.env`:** (required — use your own API key, not the one from the repo)
 ```
-GROQ_API_KEY=your_groq_key
-LLM_PROVIDER=groq
-LLM_MODEL=llama-3.1-8b-instant
+GROQ_API_KEY=gsk_your_own_key_here
+LLM_API_KEY=gsk_your_own_key_here
+LLM_PROVIDER=openai
+LLM_ENDPOINT=https://api.groq.com/openai/v1
+LLM_MODEL=openai/llama-3.1-8b-instant
 ENABLE_BACKEND_ACCESS_CONTROL=false
 COGNEE_SKIP_CONNECTION_TEST=true
 ```
 
-3. **Run:**
+4. **Run:**
 ```
 streamlit run app.py
 ```

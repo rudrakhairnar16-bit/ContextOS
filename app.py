@@ -288,6 +288,10 @@ with st.sidebar:
                 st.session_state.confirm_reset = True
                 st.warning("⚠️ Click again to confirm reset")
 
+    st.divider()
+    st.markdown("### 🔗 GitHub Repo")
+    st.markdown("[View ContextOS on GitHub](https://github.com/rudrakhairnar16-bit/ContextOS)")
+
 # ============================================
 # MAIN AREA — 3 TABS
 # ============================================
