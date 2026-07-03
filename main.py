@@ -17,6 +17,9 @@ if sys.platform.startswith('win'):
 os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
+# Force mixtral for structured output reliability
+os.environ.setdefault("LLM_MODEL", "openai/mixtral-8x7b-32768")
+
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 load_dotenv()

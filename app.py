@@ -430,6 +430,40 @@ with tab2:
 
         if clean_resume:
             st.success("📍 Welcome back! Here's exactly where you left off:")
+
+            # Format resume into cards
+            card_col1, card_col2 = st.columns(2)
+            with card_col1:
+                st.markdown("""
+                <div style="background:#1E293B;padding:16px;border-radius:12px;border:1px solid #334155;margin:8px 0;">
+                <strong style="color:#7C3AED;">📁 Files</strong><br>
+                <span style="color:#94A3B8;">Recall what you were editing last</span>
+                </div>
+                """, unsafe_allow_html=True)
+            with card_col2:
+                st.markdown("""
+                <div style="background:#1E293B;padding:16px;border-radius:12px;border:1px solid #334155;margin:8px 0;">
+                <strong style="color:#2563EB;">🐛 Bugs</strong><br>
+                <span style="color:#94A3B8;">Unsolved issues and their status</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            card_col3, card_col4 = st.columns(2)
+            with card_col3:
+                st.markdown("""
+                <div style="background:#1E293B;padding:16px;border-radius:12px;border:1px solid #334155;margin:8px 0;">
+                <strong style="color:#059669;">🏛️ Decisions</strong><br>
+                <span style="color:#94A3B8;">Architectural choices and rationale</span>
+                </div>
+                """, unsafe_allow_html=True)
+            with card_col4:
+                st.markdown("""
+                <div style="background:#1E293B;padding:16px;border-radius:12px;border:1px solid #334155;margin:8px 0;">
+                <strong style="color:#D97706;">📝 Notes</strong><br>
+                <span style="color:#94A3B8;">Developer thoughts and context</span>
+                </div>
+                """, unsafe_allow_html=True)
+
             st.divider()
             st.markdown(clean_resume)
 
@@ -459,6 +493,51 @@ with tab2:
                 if clean_blockers:
                     st.write(clean_blockers)
 
+            # ---- Export Context Section (Differentiator) ----
+            st.divider()
+            st.subheader("📋 Export Context to Your AI Assistant")
+            st.caption("Copy your full context into Claude, Cursor, Windsurf, or any AI coding tool")
+
+            export_text = f"""I'm resuming work. Here is my full context:
+
+{clean_resume}
+
+{'NEXT ACTIONS:' + clean_actions if clean_actions else ''}
+{'WHAT TO AVOID:' + clean_blockers if clean_blockers else ''}
+"""
+            with st.container(border=True):
+                st.code(export_text, language="text")
+                export_col1, export_col2 = st.columns(2)
+                with export_col1:
+                    st.markdown(
+                        '<button onclick="navigator.clipboard.writeText(`{}`);this.innerText=\'✅ Copied!\'" '
+                        'style="background:#7C3AED;color:white;border:none;padding:8px 20px;'
+                        'border-radius:8px;cursor:pointer;width:100%;font-weight:600;">'
+                        '📋 Copy for Claude</button>'.format(
+                            export_text.replace("`", "\\`").replace("${", "\\${")
+                        ),
+                        unsafe_allow_html=True
+                    )
+                with export_col2:
+                    cursor_text = f"""# ContextOS Resume — Context File
+# Paste this into Cursor's context or your @docs
+
+PROJECT CONTEXT:
+{clean_resume}
+
+{('TASKS:' + clean_actions) if clean_actions else ''}
+{('BLOCKERS:' + clean_blockers) if clean_blockers else ''}
+"""
+                    st.markdown(
+                        '<button onclick="navigator.clipboard.writeText(`{}`);this.innerText=\'✅ Copied!\'" '
+                        'style="background:#2563EB;color:white;border:none;padding:8px 20px;'
+                        'border-radius:8px;cursor:pointer;width:100%;font-weight:600;">'
+                        '📋 Copy for Cursor</button>'.format(
+                            cursor_text.replace("`", "\\`").replace("${", "\\${")
+                        ),
+                        unsafe_allow_html=True
+                    )
+
             st.caption(
                 "💡 This context was retrieved from Cognee's hybrid graph-vector "
                 "knowledge store using recall()"
@@ -484,14 +563,16 @@ with tab2:
             with st.spinner("Recalling..."):
                 r = ask_brain("What bugs are currently unsolved and what is their status?")
             result = extract_text(r)
-            st.info(result if result else "No bugs logged yet")
+            with st.expander("🐛 Bug Results", expanded=True):
+                st.markdown(result if result else "No bugs logged yet")
 
     with q2:
         if st.button("🏛️ Last decision", use_container_width=True):
             with st.spinner("Recalling..."):
                 r = ask_brain("What architectural decisions have been made and why?")
             result = extract_text(r)
-            st.info(result if result else "No decisions logged yet")
+            with st.expander("🏛️ Decision Results", expanded=True):
+                st.markdown(result if result else "No decisions logged yet")
 
     with q3:
         if st.button("📁 Files edited", use_container_width=True):
@@ -507,7 +588,8 @@ with tab2:
                     "What are the current blockers, issues or things that need attention?"
                 )
             result = extract_text(r)
-            st.info(result if result else "No blockers found yet")
+            with st.expander("⚠️ Blocker Results", expanded=True):
+                st.markdown(result if result else "No blockers found yet")
 
 # ============================================
 # TAB 3: KNOWLEDGE EXPLORER

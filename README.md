@@ -2,6 +2,11 @@
 
 > *Your codebase has a permanent memory now. Never lose context again.*
 
+[![Hackathon](https://img.shields.io/badge/Hackathon-Hangover%20Part%20AI-7C3AED)](https://www.wemakedevs.org/hackathons/cognee)
+[![Built with Cognee](https://img.shields.io/badge/Built%20with-Cognee-4F46E5)](https://cognee.ai)
+
+> 🎥 **Watch the demo video:** [YouTube Link — Add your video URL here]
+
 A **hackathon project** built for *The Hangover Part AI Hackathon* by WeMakeDevs x Cognee. ContextOS solves the problem of losing mental context when returning to a codebase after a break (e.g., Monday morning after Friday's close). It acts as a **persistent memory layer** — ingesting code files, architecture decisions, bugs, and developer notes, then letting you query everything via natural language through Cognee's hybrid graph-vector knowledge store.
 
 ---
@@ -13,6 +18,7 @@ A **hackathon project** built for *The Hangover Part AI Hackathon* by WeMakeDevs
 | **Feed Your Brain** | Ingest code files (`.py`, `.js`, `.ts`, `.md`, `.txt`, `.json`, `.yaml`, `.html`, `.css`), developer notes, architecture decisions, and bug reports via the sidebar |
 | **Ask Your Brain** | Natural language chat interface with history — queries Cognee's graph+vector memory |
 | **Context Resume** | One-click restore of last session's context with suggested next actions |
+| **Export Context** | Copy your full context to Claude, Cursor, or any AI coding assistant |
 | **Knowledge Explorer** | Concept search with visual entity graphs and relationships |
 | **4 Core Cognee Ops** | `remember()` (store), `recall()` (query), `improve()` (refine), `forget()` (clear) — all wired through the UI |
 

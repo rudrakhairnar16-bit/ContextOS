@@ -24,8 +24,8 @@ if not os.getenv("LLM_ENDPOINT"):
     os.environ["LLM_ENDPOINT"] = "https://api.groq.com/openai/v1"
 
 model = os.getenv("LLM_MODEL", "")
-if not model:
-    os.environ["LLM_MODEL"] = "openai/llama-3.1-8b-instant"
+if not model or "llama" in model.lower():
+    os.environ["LLM_MODEL"] = "openai/mixtral-8x7b-32768"
 elif not model.startswith("openai/"):
     os.environ["LLM_MODEL"] = f"openai/{model}"
 
