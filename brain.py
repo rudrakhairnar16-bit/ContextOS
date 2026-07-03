@@ -24,14 +24,16 @@ if not os.getenv("LLM_ENDPOINT"):
     os.environ["LLM_ENDPOINT"] = "https://api.groq.com/openai/v1"
 
 model = os.getenv("LLM_MODEL", "")
-if model and not model.startswith("openai/"):
+if not model:
+    os.environ["LLM_MODEL"] = "openai/mixtral-8x7b-32768"
+elif not model.startswith("openai/"):
     os.environ["LLM_MODEL"] = f"openai/{model}"
 
 import cognee
 
 # Programmatic Cognee configuration (overrides env vars if already set by Cognee)
 cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
-cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.1-8b-instant"))
+cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/mixtral-8x7b-32768"))
 cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
 cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
 
