@@ -9,7 +9,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- Cognee LLM Configuration ---
+# Cognee reads LLM_API_KEY, not GROQ_API_KEY.
+# Groq is OpenAI-compatible, so LLM_PROVIDER must be "openai".
+# Fix common misconfigurations so the app works regardless of secrets setup.
+
+if not os.getenv("LLM_API_KEY"):
+    os.environ["LLM_API_KEY"] = os.getenv("GROQ_API_KEY", "")
+
+if os.getenv("LLM_PROVIDER", "").lower() == "groq":
+    os.environ["LLM_PROVIDER"] = "openai"
+
+if not os.getenv("LLM_ENDPOINT"):
+    os.environ["LLM_ENDPOINT"] = "https://api.groq.com/openai/v1"
+
+model = os.getenv("LLM_MODEL", "")
+if model and not model.startswith("openai/"):
+    os.environ["LLM_MODEL"] = f"openai/{model}"
+
 import cognee
+
+# Programmatic Cognee configuration (overrides env vars if already set by Cognee)
+cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
+cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.1-8b-instant"))
+cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
+cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
 
 
 def run_async(coro):

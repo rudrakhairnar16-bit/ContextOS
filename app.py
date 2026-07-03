@@ -18,6 +18,7 @@ load_dotenv()
 
 import streamlit as st
 from brain import remember_this, ask_brain, improve_brain, forget_all
+import traceback
 from ingest import (
     ingest_file_content,
     ingest_decision,
@@ -196,9 +197,12 @@ with st.sidebar:
         if submit_note:
             if note_text.strip():
                 with st.spinner("Storing in Cognee..."):
-                    if ingest_note(note_text):
-                        st.session_state.memory_count += 1
-                        st.success("✅ Note saved!")
+                    try:
+                        if ingest_note(note_text):
+                            st.session_state.memory_count += 1
+                            st.success("✅ Note saved!")
+                    except Exception as e:
+                        st.error(f"Cognee error: {e}")
             else:
                 st.warning("Write something first")
 
@@ -221,9 +225,12 @@ with st.sidebar:
         if submit_decision:
             if decision_input.strip() and reason_input.strip():
                 with st.spinner("Logging to Cognee..."):
-                    if ingest_decision(decision_input, reason_input):
-                        st.session_state.memory_count += 1
-                        st.success("✅ Decision logged!")
+                    try:
+                        if ingest_decision(decision_input, reason_input):
+                            st.session_state.memory_count += 1
+                            st.success("✅ Decision logged!")
+                    except Exception as e:
+                        st.error(f"Cognee error: {e}")
             else:
                 st.warning("Fill both fields")
 
@@ -246,9 +253,12 @@ with st.sidebar:
         if submit_bug:
             if bug_input.strip() and bug_status.strip():
                 with st.spinner("Logging to Cognee..."):
-                    if ingest_bug(bug_input, bug_status):
-                        st.session_state.memory_count += 1
-                        st.success("✅ Bug logged!")
+                    try:
+                        if ingest_bug(bug_input, bug_status):
+                            st.session_state.memory_count += 1
+                            st.success("✅ Bug logged!")
+                    except Exception as e:
+                        st.error(f"Cognee error: {e}")
             else:
                 st.warning("Fill both fields")
 
