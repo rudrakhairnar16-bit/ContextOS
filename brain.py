@@ -29,13 +29,26 @@ if not model:
 elif not model.startswith("openai/"):
     os.environ["LLM_MODEL"] = f"openai/{model}"
 
+# --- Cognee Data Directory ---
+# Cognee's default paths point inside site-packages (read-only on cloud).
+# Override to a writable directory (home dir or /tmp).
+
+cognee_root = os.path.join(os.environ.get("HOME", "/tmp"), ".cognee")
+
+os.environ.setdefault("DATA_ROOT_DIRECTORY", os.path.join(cognee_root, "data"))
+os.environ.setdefault("SYSTEM_ROOT_DIRECTORY", os.path.join(cognee_root, "system"))
+os.environ.setdefault("CACHE_ROOT_DIRECTORY", os.path.join(cognee_root, "cache"))
+os.environ.setdefault("COGNEE_LOGS_DIR", os.path.join(cognee_root, "logs"))
+
 import cognee
 
-# Programmatic Cognee configuration (overrides env vars if already set by Cognee)
+# Programmatic Cognee configuration
 cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
 cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/mixtral-8x7b-32768"))
 cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
 cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
+cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
+cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
 
 
 def run_async(coro):
