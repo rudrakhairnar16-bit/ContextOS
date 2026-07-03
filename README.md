@@ -35,16 +35,6 @@ It's Monday morning. You closed your laptop Friday with Redis half-configured, a
 
 ---
 
-## Screenshots
-
-| Chat Interface | Context Resume |
-|---|---|
-| ![Chat](assets/screenshot_chat.png) | ![Resume](assets/screenshot_resume.png) |
-| **Knowledge Explorer** | **Export Context** |
-| ![Explorer](assets/screenshot_explorer.png) | ![Export](assets/screenshot_export.png) |
-
----
-
 ## Architecture
 
 ```
@@ -150,7 +140,3 @@ Deployed on **Streamlit Community Cloud**. Auto-deploys on every push to `main`.
 ## Built For
 
 **The Hangover Part AI Hackathon** — WeMakeDevs x Cognee
-
-## License
-
-[MIT](LICENSE)
