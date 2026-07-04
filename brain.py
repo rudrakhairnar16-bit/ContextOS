@@ -4,6 +4,13 @@ os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
 import asyncio
+import nest_asyncio
+nest_asyncio.apply()
+
+# Dedicated event loop for Cognee (avoids "bound to a different event loop" errors)
+_cognee_loop = asyncio.new_event_loop()
+asyncio.set_event_loop(_cognee_loop)
+
 from typing import Any, List
 from dotenv import load_dotenv
 
@@ -48,18 +55,9 @@ cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
 
 def run_async(coro):
+    global _cognee_loop
     try:
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop and loop.is_running():
-            import nest_asyncio
-            nest_asyncio.apply()
-            return loop.run_until_complete(coro)
-        else:
-            return asyncio.run(coro)
+        return _cognee_loop.run_until_complete(coro)
     except Exception as e:
         print(f"run_async error: {e}")
         raise
