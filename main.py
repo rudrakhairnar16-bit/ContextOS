@@ -17,18 +17,46 @@ if sys.platform.startswith('win'):
 os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
-# Cognee Cloud config (set before importing cognee)
-os.environ.setdefault("COGNEE_CLOUD_URL", os.getenv("COGNEE_CLOUD_URL", ""))
-os.environ.setdefault("COGNEE_API_KEY", os.getenv("COGNEE_API_KEY", ""))
-
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 load_dotenv()
 
+# ---- Data Directory (writable location) ----
+cognee_root = os.path.join(os.environ.get("HOME", "/tmp"), ".cognee")
+os.environ.setdefault("DATA_ROOT_DIRECTORY", os.path.join(cognee_root, "data"))
+os.environ.setdefault("SYSTEM_ROOT_DIRECTORY", os.path.join(cognee_root, "system"))
+os.environ.setdefault("CACHE_ROOT_DIRECTORY", os.path.join(cognee_root, "cache"))
+
+# ---- LLM Configuration (Groq via OpenAI-compatible API) ----
+if not os.getenv("LLM_API_KEY"):
+    os.environ["LLM_API_KEY"] = os.getenv("GROQ_API_KEY", "")
+if os.getenv("LLM_PROVIDER", "").lower() == "groq":
+    os.environ["LLM_PROVIDER"] = "openai"
+if not os.getenv("LLM_ENDPOINT"):
+    os.environ["LLM_ENDPOINT"] = "https://api.groq.com/openai/v1"
+
+model = os.getenv("LLM_MODEL", "")
+if not model or "llama" in model.lower():
+    os.environ["LLM_MODEL"] = "openai/mixtral-8x7b-32768"
+elif not model.startswith("openai/"):
+    os.environ["LLM_MODEL"] = f"openai/{model}"
+
+# ---- Embedding Configuration (FastEmbed — local, no API key) ----
+os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
+os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
+
 import cognee
 
-# Cognee Cloud programmatic config
-cognee.config.set_llm_api_key(os.environ.get("COGNEE_API_KEY", ""))
+cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
+cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/mixtral-8x7b-32768"))
+cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
+cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
+cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
+cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
+cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
+cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
+cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
 
 async def run_all_tests():

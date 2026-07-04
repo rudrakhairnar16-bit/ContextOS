@@ -85,12 +85,18 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. **Get your own Cognee Cloud API key** — Sign up at [app.cognee.ai](https://app.cognee.ai) and use hackathon code `COGNEE-35` for free credits.
+2. **Get a Groq API key** — Sign up at [console.groq.com](https://console.groq.com) (free tier includes mixtral-8x7b-32768).
 
 3. **Configure `.env`:**
 ```
-COGNEE_CLOUD_URL=https://api.cognee.ai/v1
-COGNEE_API_KEY=your_cognee_cloud_key_here
+GROQ_API_KEY=gsk_your_groq_api_key_here
+LLM_API_KEY=gsk_your_groq_api_key_here
+LLM_PROVIDER=openai
+LLM_ENDPOINT=https://api.groq.com/openai/v1
+LLM_MODEL=openai/mixtral-8x7b-32768
+EMBEDDING_PROVIDER=fastembed
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_DIMENSIONS=384
 ENABLE_BACKEND_ACCESS_CONTROL=false
 COGNEE_SKIP_CONNECTION_TEST=true
 ```
@@ -127,10 +133,16 @@ pytest tests/ -v
 If the live Streamlit app is down or you want to test offline:
 
 1. **Download** the repo as ZIP or clone it to your desktop
-2. **Add your own Cognee Cloud API key** — Sign up at [app.cognee.ai](https://app.cognee.ai) (use hackathon code `COGNEE-35`). Create a `.env` file in the project folder:
+2. **Add your Groq API key** — Sign up at [console.groq.com](https://console.groq.com). Create a `.env` file in the project folder:
 ```
-COGNEE_CLOUD_URL=https://api.cognee.ai/v1
-COGNEE_API_KEY=your_cognee_cloud_key_here
+GROQ_API_KEY=gsk_your_groq_api_key_here
+LLM_API_KEY=gsk_your_groq_api_key_here
+LLM_PROVIDER=openai
+LLM_ENDPOINT=https://api.groq.com/openai/v1
+LLM_MODEL=openai/mixtral-8x7b-32768
+EMBEDDING_PROVIDER=fastembed
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_DIMENSIONS=384
 ENABLE_BACKEND_ACCESS_CONTROL=false
 COGNEE_SKIP_CONNECTION_TEST=true
 ```
