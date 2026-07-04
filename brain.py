@@ -4,9 +4,6 @@ os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
 import asyncio
-import threading
-from concurrent.futures import TimeoutError as FutureTimeoutError
-
 from typing import Any, List
 from dotenv import load_dotenv
 
@@ -42,31 +39,7 @@ os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
 os.environ["TELEMETRY_DISABLED"] = "true"
 
-# Set a dedicated event loop BEFORE importing Cognee, so its module-level
-# async locks (pipeline.py: update_status_lock, _dataset_locks_guard) bind
-# to this loop instead of the import-time default loop.
-import sys
-
-if "cognee" in sys.modules:
-    _cognee_loop = getattr(sys.modules["cognee"], "__cognee_loop__", None)
-else:
-    _cognee_loop = None
-
-if _cognee_loop is None or _cognee_loop.is_closed():
-    _cognee_loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(_cognee_loop)
-
-    def _run_cognee_loop():
-        asyncio.set_event_loop(_cognee_loop)
-        _cognee_loop.run_forever()
-
-    threading.Thread(target=_run_cognee_loop, daemon=True).start()
-else:
-    asyncio.set_event_loop(_cognee_loop)
-
 import cognee
-
-cognee.__cognee_loop__ = _cognee_loop
 
 cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
 cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
@@ -80,15 +53,18 @@ cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
 COGNEE_TIMEOUT = 120
 
+
 def run_async(coro):
-    global _cognee_loop
     try:
-        future = asyncio.run_coroutine_threadsafe(
-            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT),
-            _cognee_loop,
+        loop = asyncio.get_event_loop()
+        import cognee.modules.pipelines.operations.pipeline as _p
+        _p._dataset_locks = {}
+        _p._dataset_locks_guard = asyncio.Lock()
+        _p.update_status_lock = asyncio.Lock()
+        return loop.run_until_complete(
+            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT)
         )
-        return future.result(timeout=COGNEE_TIMEOUT + 10)
-    except FutureTimeoutError:
+    except asyncio.TimeoutError:
         print("run_async timeout")
         raise
     except Exception:
@@ -155,4 +131,4 @@ def forget_all() -> bool:
         return True
 
 
-print("✅ ContextOS Brain — Connected to Cognee")
+print("ContextOS Brain -- Connected to Cognee")
