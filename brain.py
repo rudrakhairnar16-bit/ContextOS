@@ -96,12 +96,8 @@ async def _forget():
 
 
 def remember_this(text: str) -> bool:
-    try:
-        run_async(_remember(text))
-        return True
-    except Exception as e:
-        print(f"Remember error: {e}")
-        return False
+    run_async(_remember(text))
+    return True
 
 
 def ask_brain(question: str) -> List[Any]:
