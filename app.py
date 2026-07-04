@@ -201,6 +201,8 @@ with st.sidebar:
                         if ingest_note(note_text):
                             st.session_state.memory_count += 1
                             st.success("✅ Note saved!")
+                        else:
+                            st.error("❌ Cognee failed to store note (check logs)")
                     except Exception as e:
                         st.error(f"Cognee error: {e}")
             else:
@@ -229,6 +231,8 @@ with st.sidebar:
                         if ingest_decision(decision_input, reason_input):
                             st.session_state.memory_count += 1
                             st.success("✅ Decision logged!")
+                        else:
+                            st.error("❌ Cognee failed to log decision (check logs)")
                     except Exception as e:
                         st.error(f"Cognee error: {e}")
             else:
@@ -257,6 +261,8 @@ with st.sidebar:
                         if ingest_bug(bug_input, bug_status):
                             st.session_state.memory_count += 1
                             st.success("✅ Bug logged!")
+                        else:
+                            st.error("❌ Cognee failed to log bug (check logs)")
                     except Exception as e:
                         st.error(f"Cognee error: {e}")
             else:

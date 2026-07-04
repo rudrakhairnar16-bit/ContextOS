@@ -57,10 +57,17 @@ cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
 cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
 
+COGNEE_TIMEOUT = 120
+
 def run_async(coro):
     global _cognee_loop
     try:
-        return _cognee_loop.run_until_complete(coro)
+        return _cognee_loop.run_until_complete(
+            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT)
+        )
+    except asyncio.TimeoutError:
+        print(f"run_async timeout after {COGNEE_TIMEOUT}s")
+        raise
     except Exception as e:
         print(f"run_async error: {e}")
         raise
