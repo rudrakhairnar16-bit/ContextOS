@@ -40,6 +40,9 @@ os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
 os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
+# Disable Cognee telemetry (avoids asyncio.Lock "bound to a different event loop" error)
+os.environ["TELEMETRY_DISABLED"] = "true"
+
 # Dedicated event loop for Cognee. Initialized on the main thread
 # first so all async locks bind to it during import, then kept alive
 # in a background thread.
