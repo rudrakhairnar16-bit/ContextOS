@@ -4,6 +4,9 @@ os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
 import asyncio
+import threading
+from concurrent.futures import TimeoutError as FutureTimeoutError
+
 from typing import Any, List
 from dotenv import load_dotenv
 
@@ -39,7 +42,31 @@ os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
 os.environ["TELEMETRY_DISABLED"] = "true"
 
+# Set a dedicated event loop BEFORE importing Cognee, so its module-level
+# async locks (pipeline.py: update_status_lock, _dataset_locks_guard) bind
+# to this loop instead of the import-time default loop.
+import sys
+
+if "cognee" in sys.modules:
+    _cognee_loop = getattr(sys.modules["cognee"], "__cognee_loop__", None)
+else:
+    _cognee_loop = None
+
+if _cognee_loop is None or _cognee_loop.is_closed():
+    _cognee_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(_cognee_loop)
+
+    def _run_cognee_loop():
+        asyncio.set_event_loop(_cognee_loop)
+        _cognee_loop.run_forever()
+
+    threading.Thread(target=_run_cognee_loop, daemon=True).start()
+else:
+    asyncio.set_event_loop(_cognee_loop)
+
 import cognee
+
+cognee.__cognee_loop__ = _cognee_loop
 
 cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
 cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
@@ -51,11 +78,19 @@ cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
 cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
 cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
+COGNEE_TIMEOUT = 120
 
 def run_async(coro):
+    global _cognee_loop
     try:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(coro)
+        future = asyncio.run_coroutine_threadsafe(
+            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT),
+            _cognee_loop,
+        )
+        return future.result(timeout=COGNEE_TIMEOUT + 10)
+    except FutureTimeoutError:
+        print("run_async timeout")
+        raise
     except Exception:
         import traceback
         traceback.print_exc()
@@ -85,8 +120,12 @@ async def _forget():
 
 
 def remember_this(text: str) -> bool:
-    run_async(_remember(text))
-    return True
+    try:
+        run_async(_remember(text))
+        return True
+    except Exception as e:
+        print(f"Remember error: {e}")
+        return False
 
 
 def ask_brain(question: str) -> List[Any]:
