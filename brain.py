@@ -33,7 +33,10 @@ if not os.getenv("LLM_ENDPOINT"):
 model = os.getenv("LLM_MODEL", "")
 BAD_MODELS = ["mixtral-8x7b-32768", "gpt-oss-20b", "gpt-oss-safeguard-20b"]
 if not model or any(bad in model.lower() for bad in BAD_MODELS):
-    model = "llama-3.3-70b-versatile"
+    model = "openai/llama-3.3-70b-versatile"
+    os.environ["LLM_MODEL"] = model
+elif not model.startswith("openai/"):
+    model = f"openai/{model}"
     os.environ["LLM_MODEL"] = model
 
 # ---- Embedding Configuration (FastEmbed — local, no API key) ----
@@ -44,7 +47,7 @@ os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 import cognee
 
 cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
-cognee.config.set_llm_model(os.getenv("LLM_MODEL", "llama-3.3-70b-versatile"))
+cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
 cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
 cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
 cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
