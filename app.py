@@ -336,6 +336,15 @@ with st.sidebar:
     st.markdown("### 🔗 GitHub Repo")
     st.markdown("[View ContextOS on GitHub](https://github.com/rudrakhairnar16-bit/ContextOS)")
 
+st.divider()
+info_col1, info_col2, info_col3 = st.columns(3)
+with info_col1:
+    st.metric("Engine", "Cognee 1.2.2")
+with info_col2:
+    st.metric("Operations", "4/4 Active")
+with info_col3:
+    st.metric("Status", "🟢 Ready")
+
 # ============================================
 # MAIN AREA — 3 TABS
 # ============================================
