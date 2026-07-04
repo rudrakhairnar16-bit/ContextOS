@@ -113,11 +113,39 @@ Run the backend test harness:
 python main.py
 ```
 
+> ✅ If you see **"ALL 4 COGNEE OPERATIONS VERIFIED!"** the backend is working.
+> `main.py` tests all 4 Cognee operations: `remember()` stores 3 sample memories (decision, bug, note), `recall()` queries the knowledge graph, `improve()` refines it, and `forget()` cleans up.
+> **This is the quickest way to verify ContextOS works with your API key.**
+
 Or run unit tests:
 ```
 pip install pytest
 pytest tests/ -v
 ```
+
+---
+
+## Quick Test (No Installation Required)
+
+If the live Streamlit app is down or you want to test offline:
+
+1. **Download** the repo as ZIP or clone it to your desktop
+2. **Add your own API key** — Create a `.env` file in the project folder:
+```
+GROQ_API_KEY=gsk_your_key_here
+LLM_API_KEY=gsk_your_key_here
+LLM_PROVIDER=openai
+LLM_ENDPOINT=https://api.groq.com/openai/v1
+LLM_MODEL=openai/mixtral-8x7b-32768
+```
+3. **Run this single command** to verify everything works:
+```
+python main.py
+```
+> The output walks you through all 4 Cognee operations. If all pass, launch the full UI with:
+> ```
+> streamlit run app.py
+> ```
 
 ---
 
