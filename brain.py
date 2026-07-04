@@ -4,8 +4,6 @@ os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
 import asyncio
-from concurrent.futures import TimeoutError as FutureTimeoutError
-
 from typing import Any, List
 from dotenv import load_dotenv
 
@@ -41,35 +39,37 @@ os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
 os.environ["TELEMETRY_DISABLED"] = "true"
 
+import cognee
 
-COGNEE_TIMEOUT = 120
+cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
+cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
+cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
+cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
+cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
+cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
+cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
+cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
+cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
 
 def run_async(coro):
     try:
-        return asyncio.run(
-            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT)
-        )
-    except asyncio.TimeoutError:
-        print("run_async timeout")
-        raise
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(coro)
     except Exception as e:
         print(f"run_async error: {e}")
         raise
 
 
 async def _remember(text: str):
-    import cognee
     await cognee.remember(text)
 
 
 async def _recall(question: str):
-    import cognee
     return await cognee.recall(question)
 
 
 async def _improve():
-    import cognee
     try:
         await cognee.improve()
     except Exception as e:
@@ -77,7 +77,6 @@ async def _improve():
 
 
 async def _forget():
-    import cognee
     try:
         await cognee.forget()
     except Exception as e:
@@ -85,8 +84,12 @@ async def _forget():
 
 
 def remember_this(text: str) -> bool:
-    run_async(_remember(text))
-    return True
+    try:
+        run_async(_remember(text))
+        return True
+    except Exception as e:
+        print(f"Remember error: {e}")
+        return False
 
 
 def ask_brain(question: str) -> List[Any]:
