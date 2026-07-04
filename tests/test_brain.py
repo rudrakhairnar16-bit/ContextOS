@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
-os.environ.setdefault("LLM_MODEL", "openai/mixtral-8x7b-32768")
+os.environ.setdefault("LLM_MODEL", "openai/gpt-oss-20b")
 os.environ.setdefault("LLM_ENDPOINT", "https://api.groq.com/openai/v1")
 os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
 os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")

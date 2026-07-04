@@ -77,7 +77,7 @@ LanceDB (vector DB) + NetworkX (graph)
 |---|---|
 | **UI** | Streamlit 1.58.0 |
 | **Memory Engine** | Cognee 1.2.2 (graph + vector) |
-| **LLM** | Groq API (mixtral-8x7b-32768) via OpenAI-compatible SDK |
+| **LLM** | Groq API (gpt-oss-20b) via OpenAI-compatible SDK |
 | **Embeddings** | FastEmbed (all-MiniLM-L6-v2, 384d) — local, no API key needed |
 | **Vector DB** | LanceDB 0.33.0 |
 | **Graph** | NetworkX 3.6.1 + RDflib 7.1.4 |
@@ -93,7 +93,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. **Get a Groq API key** — Sign up at [console.groq.com](https://console.groq.com) (free tier includes mixtral-8x7b-32768).
+2. **Get a Groq API key** — Sign up at [console.groq.com](https://console.groq.com) (free tier includes gpt-oss-20b).
 
 3. **Configure `.env`:**
 ```
@@ -101,7 +101,7 @@ GROQ_API_KEY=gsk_your_groq_api_key_here
 LLM_API_KEY=gsk_your_groq_api_key_here
 LLM_PROVIDER=openai
 LLM_ENDPOINT=https://api.groq.com/openai/v1
-LLM_MODEL=openai/mixtral-8x7b-32768
+LLM_MODEL=openai/gpt-oss-20b
 EMBEDDING_PROVIDER=fastembed
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_DIMENSIONS=384
@@ -147,7 +147,7 @@ GROQ_API_KEY=gsk_your_groq_api_key_here
 LLM_API_KEY=gsk_your_groq_api_key_here
 LLM_PROVIDER=openai
 LLM_ENDPOINT=https://api.groq.com/openai/v1
-LLM_MODEL=openai/mixtral-8x7b-32768
+LLM_MODEL=openai/gpt-oss-20b
 EMBEDDING_PROVIDER=fastembed
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_DIMENSIONS=384
@@ -177,7 +177,7 @@ Deployed on **Streamlit Community Cloud**. Auto-deploys on every push to `main`.
 
 - **Hackathon project** — built for The Hangover Part AI Hackathon by WeMakeDevs x Cognee
 - **FastEmbed** for local embeddings — no OpenAI embedding API key required
-- Uses **Groq** for LLM inference (free tier, mixtral-8x7b-32768)
+- Uses **Groq** for LLM inference (free tier, gpt-oss-20b)
 
 ---
 
