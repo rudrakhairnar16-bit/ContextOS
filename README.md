@@ -14,6 +14,14 @@
 
 ---
 
+## Screenshots
+
+| Chat | Context Resume | Knowledge Explorer |
+|---|---|---|
+| ![Chat tab](assets/screenshot1.png) | ![Context Resume tab](assets/screenshot2.png) | ![Knowledge Explorer tab](assets/screenshot3.png) |
+
+---
+
 ## The Problem
 
 It's Monday morning. You closed your laptop Friday with Redis half-configured, a JWT bug mid-debug, and 3 architecture decisions pending. ChatGPT doesn't remember any of it. Your team's Notion is outdated.
