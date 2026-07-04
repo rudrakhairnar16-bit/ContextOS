@@ -672,6 +672,8 @@ with tab3:
         placeholder="Redis, authentication, database, performance, JWT..."
     )
 
+    clean_direct = None
+
     if st.button("🔍 Explore This Concept") and concept:
         with st.spinner(f"Querying Cognee graph for '{concept}'... (30-60 seconds)"):
             direct = ask_brain(
@@ -727,7 +729,7 @@ with tab3:
 
     st.divider()
 
-    if not clean_direct:
+    if clean_direct is None:
         st.markdown("""
         <div style="background:rgba(124,58,237,0.06);border:1px dashed rgba(124,58,237,0.3);
         border-radius:12px;padding:30px;text-align:center;">
