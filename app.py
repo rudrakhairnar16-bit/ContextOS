@@ -108,6 +108,29 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "confirm_reset" not in st.session_state:
     st.session_state.confirm_reset = False
+if "memory_type_counts" not in st.session_state:
+    st.session_state.memory_type_counts = {"files": 0, "notes": 0, "decisions": 0, "bugs": 0}
+if "recent_memories" not in st.session_state:
+    st.session_state.recent_memories = []
+if "ingest_since_improve" not in st.session_state:
+    st.session_state.ingest_since_improve = 0
+if "last_operation" not in st.session_state:
+    st.session_state.last_operation = None
+
+
+def _record_memory(mtype: str, label: str):
+    st.session_state.memory_count += 1
+    st.session_state.memory_type_counts[mtype] += 1
+    st.session_state.ingest_since_improve += 1
+    st.session_state.recent_memories.insert(0, label)
+    st.session_state.recent_memories = st.session_state.recent_memories[:5]
+    st.session_state.last_operation = f"Stored {label}"
+
+    if st.session_state.ingest_since_improve >= 5:
+        with st.spinner("Auto-improving memory connections..."):
+            improve_brain()
+        st.session_state.ingest_since_improve = 0
+        st.toast("🧠 Memory connections refined!", icon="✨")
 
 # ============================================
 # HEADER
@@ -121,15 +144,19 @@ st.markdown(
 st.markdown('<span class="cognee-badge">⚡ Powered by Cognee</span>', unsafe_allow_html=True)
 
 # Live stats bar
-col1, col2, col3, col4 = st.columns(4)
+mc = st.session_state.memory_type_counts
+total = st.session_state.memory_count
+col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
-    st.metric("Memories Stored", st.session_state.memory_count, help="Items added this session")
+    st.metric("Total Memories", total, help="Items added this session")
 with col2:
-    st.metric("Engine", "Cognee 1.2.2", help="Graph-vector memory layer")
+    st.metric("📁 Files", mc["files"], help="Code files ingested")
 with col3:
-    st.metric("Operations", "4/4 Active", help="remember, recall, improve, forget")
+    st.metric("📝 Notes", mc["notes"], help="Developer notes")
 with col4:
-    st.metric("Status", "🟢 Ready", help="Brain is active and accepting data")
+    st.metric("🏛️ Decisions", mc["decisions"], help="Architecture decisions")
+with col5:
+    st.metric("🐛 Bugs", mc["bugs"], help="Bugs logged")
 
 st.divider()
 
@@ -165,7 +192,7 @@ with st.sidebar:
                         result = ingest_file_content(file.name, content)
                         if result:
                             success_count += 1
-                            st.session_state.memory_count += 1
+                            _record_memory("files", f"File: {file.name}")
                         else:
                             errors.append(f"{file.name}: ingestion failed silently")
                     else:
@@ -199,8 +226,9 @@ with st.sidebar:
                 with st.spinner("Storing in Cognee..."):
                     try:
                         if ingest_note(note_text):
-                            st.session_state.memory_count += 1
-                            st.success("✅ Note saved!")
+                            label = note_text[:60] + ("..." if len(note_text) > 60 else "")
+                            _record_memory("notes", f"Note: {label}")
+                            st.toast("Note stored in brain!", icon="📝")
                         else:
                             st.error("❌ Cognee failed to store note (check logs)")
                     except Exception as e:
@@ -229,8 +257,8 @@ with st.sidebar:
                 with st.spinner("Logging to Cognee..."):
                     try:
                         if ingest_decision(decision_input, reason_input):
-                            st.session_state.memory_count += 1
-                            st.success("✅ Decision logged!")
+                            _record_memory("decisions", f"Decision: {decision_input[:60]}")
+                            st.toast("Decision logged!", icon="🏛️")
                         else:
                             st.error("❌ Cognee failed to log decision (check logs)")
                     except Exception as e:
@@ -259,8 +287,8 @@ with st.sidebar:
                 with st.spinner("Logging to Cognee..."):
                     try:
                         if ingest_bug(bug_input, bug_status):
-                            st.session_state.memory_count += 1
-                            st.success("✅ Bug logged!")
+                            _record_memory("bugs", f"Bug: {bug_input[:60]}")
+                            st.toast("Bug logged!", icon="🐛")
                         else:
                             st.error("❌ Cognee failed to log bug (check logs)")
                     except Exception as e:
@@ -270,29 +298,39 @@ with st.sidebar:
 
     st.divider()
 
+    # ---- Recent Memories ----
+    st.subheader("🕐 Recent Memories")
+    if st.session_state.recent_memories:
+        for m in st.session_state.recent_memories:
+            st.caption(m)
+    else:
+        st.caption("No memories yet. Start feeding your brain above.")
+
+    st.divider()
+
     # ---- Memory Controls ----
     st.subheader("🔧 Memory Controls")
-    st.caption(f"Session memories: {st.session_state.memory_count}")
+    improve_label = f"⚡ Improve Brain ({st.session_state.ingest_since_improve}/5 auto)"
+    if st.button(improve_label, help="Uses Cognee improve() to make memory smarter"):
+        with st.spinner("Running improve()..."):
+            improve_brain()
+        st.session_state.ingest_since_improve = 0
+        st.success("✅ Brain connections refined!")
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if st.button("⚡ Improve Brain", help="Uses Cognee improve() to make memory smarter"):
-            with st.spinner("Running improve()..."):
-                improve_brain()
-            st.success("✅ Brain improved!")
-
-    with col_b:
-        if st.button("🗑️ Reset Memory", help="Uses Cognee forget() to clear all data"):
-            if st.session_state.confirm_reset:
-                with st.spinner("Running forget()..."):
-                    forget_all()
-                st.session_state.memory_count = 0
-                st.session_state.chat_history = []
-                st.session_state.confirm_reset = False
-                st.success("✅ Memory cleared!")
-            else:
-                st.session_state.confirm_reset = True
-                st.warning("⚠️ Click again to confirm reset")
+    if st.button("🗑️ Reset Memory", help="Uses Cognee forget() to clear all data"):
+        if st.session_state.confirm_reset:
+            with st.spinner("Running forget()..."):
+                forget_all()
+            st.session_state.memory_count = 0
+            st.session_state.memory_type_counts = {"files": 0, "notes": 0, "decisions": 0, "bugs": 0}
+            st.session_state.chat_history = []
+            st.session_state.recent_memories = []
+            st.session_state.ingest_since_improve = 0
+            st.session_state.confirm_reset = False
+            st.toast("Memory cleared!", icon="🗑️")
+        else:
+            st.session_state.confirm_reset = True
+            st.warning("⚠️ Click again to confirm reset")
 
     st.divider()
     st.markdown("### 🔗 GitHub Repo")
@@ -315,9 +353,20 @@ with tab1:
     st.caption("Powered by Cognee recall() — hybrid graph + vector search")
 
     # Display chat history
-    for msg in st.session_state.chat_history:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    chat_container = st.container()
+    with chat_container:
+        for msg in st.session_state.chat_history:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+    if not st.session_state.chat_history:
+        st.info(
+            "💡 **Try asking:**\n\n"
+            "• *Why did we use Redis?*\n"
+            "• *What bugs are open?*\n"
+            "• *What was I working on last?*\n\n"
+            "First time? Upload files and add notes via the sidebar →"
+        )
 
     # Chat input
     user_question = st.chat_input(
@@ -435,6 +484,7 @@ with tab2:
         st.divider()
 
         if clean_resume:
+            st.balloons()
             st.success("📍 Welcome back! Here's exactly where you left off:")
 
             # Format resume into cards
@@ -677,6 +727,19 @@ with tab3:
 
     st.divider()
 
+    if not clean_direct:
+        st.markdown("""
+        <div style="background:rgba(124,58,237,0.06);border:1px dashed rgba(124,58,237,0.3);
+        border-radius:12px;padding:30px;text-align:center;">
+        <div style="font-size:3rem;margin-bottom:8px;">🔮</div>
+        <strong>No results yet</strong><br>
+        <span style="color:#94A3B8;">
+        Add data via the sidebar first, then explore how concepts connect.
+        </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
     st.subheader("💡 How Cognee's Memory Works")
     exp_col1, exp_col2, exp_col3 = st.columns(3)
 
