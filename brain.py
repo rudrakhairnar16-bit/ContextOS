@@ -40,8 +40,9 @@ os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
 os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
-# Cognee runs on its own background thread so async locks bind to a
-# dedicated event loop, avoiding "bound to a different event loop" errors.
+# Dedicated event loop for Cognee. Initialized on the main thread
+# first so all async locks bind to it during import, then kept alive
+# in a background thread.
 _cognee_loop = asyncio.new_event_loop()
 
 async def _init_cognee():
@@ -57,22 +58,16 @@ async def _init_cognee():
     cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
     return cognee
 
-_cognee_init_done = threading.Event()
-_cognee = None
+# Initialize Cognee on the main thread while importing, so module-level
+# async objects (locks, connections) bind to _cognee_loop.
+_cognee = _cognee_loop.run_until_complete(_init_cognee())
 
+# Keep the loop alive in a background thread for future operations.
 def _run_cognee_loop():
-    global _cognee
     asyncio.set_event_loop(_cognee_loop)
-    _cognee = _cognee_loop.run_until_complete(_init_cognee())
-    _cognee_init_done.set()
     _cognee_loop.run_forever()
 
-_thread = threading.Thread(target=_run_cognee_loop, daemon=True)
-_thread.start()
-
-_cognee_init_done.wait(timeout=30)
-if _cognee is None:
-    raise RuntimeError("Cognee initialization timed out")
+threading.Thread(target=_run_cognee_loop, daemon=True).start()
 
 
 COGNEE_TIMEOUT = 120
