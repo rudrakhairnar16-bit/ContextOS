@@ -4,12 +4,19 @@ os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+import threading
+from concurrent.futures import TimeoutError as FutureTimeoutError
 
-# Dedicated event loop for Cognee (avoids "bound to a different event loop" errors)
+# Cognee runs on its own background thread with a dedicated event loop.
+# This avoids "bound to a different event loop" errors with Streamlit.
 _cognee_loop = asyncio.new_event_loop()
-asyncio.set_event_loop(_cognee_loop)
+
+def _run_cognee_loop():
+    asyncio.set_event_loop(_cognee_loop)
+    _cognee_loop.run_forever()
+
+_thread = threading.Thread(target=_run_cognee_loop, daemon=True)
+_thread.start()
 
 from typing import Any, List
 from dotenv import load_dotenv
@@ -62,11 +69,13 @@ COGNEE_TIMEOUT = 120
 def run_async(coro):
     global _cognee_loop
     try:
-        return _cognee_loop.run_until_complete(
-            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT)
+        future = asyncio.run_coroutine_threadsafe(
+            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT),
+            _cognee_loop
         )
-    except asyncio.TimeoutError:
-        print(f"run_async timeout after {COGNEE_TIMEOUT}s")
+        return future.result(timeout=COGNEE_TIMEOUT + 10)
+    except FutureTimeoutError:
+        print("run_async timeout")
         raise
     except Exception as e:
         print(f"run_async error: {e}")
