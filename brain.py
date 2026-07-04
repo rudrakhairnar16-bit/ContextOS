@@ -4,7 +4,6 @@ os.environ["ENABLE_BACKEND_ACCESS_CONTROL"] = "false"
 os.environ["COGNEE_SKIP_CONNECTION_TEST"] = "true"
 
 import asyncio
-import threading
 from concurrent.futures import TimeoutError as FutureTimeoutError
 
 from typing import Any, List
@@ -42,51 +41,16 @@ os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
 os.environ["TELEMETRY_DISABLED"] = "true"
 
-import cognee
-
-# Store the event loop on Cognee's module so it survives hot-reloads.
-# Streamlit Cloud may reload brain.py while Cognee's module stays cached
-# in sys.modules with its async locks still bound to the original loop.
-_cognee_loop = getattr(cognee, "__cognee_loop__", None)
-_cognee_initialized = getattr(cognee, "__cognee_initialized__", False)
-
-if not _cognee_initialized:
-    _cognee_loop = asyncio.new_event_loop()
-
-    async def _configure():
-        cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
-        cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
-        cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
-        cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
-        cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
-        cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
-        cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
-        cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
-        cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
-
-    _cognee_loop.run_until_complete(_configure())
-
-    def _run_cognee_loop():
-        asyncio.set_event_loop(_cognee_loop)
-        _cognee_loop.run_forever()
-
-    threading.Thread(target=_run_cognee_loop, daemon=True).start()
-
-    cognee.__cognee_loop__ = _cognee_loop
-    cognee.__cognee_initialized__ = True
-
 
 COGNEE_TIMEOUT = 120
 
+
 def run_async(coro):
-    global _cognee_loop
     try:
-        future = asyncio.run_coroutine_threadsafe(
-            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT),
-            _cognee_loop
+        return asyncio.run(
+            asyncio.wait_for(coro, timeout=COGNEE_TIMEOUT)
         )
-        return future.result(timeout=COGNEE_TIMEOUT + 10)
-    except FutureTimeoutError:
+    except asyncio.TimeoutError:
         print("run_async timeout")
         raise
     except Exception as e:
@@ -95,14 +59,17 @@ def run_async(coro):
 
 
 async def _remember(text: str):
+    import cognee
     await cognee.remember(text)
 
 
 async def _recall(question: str):
+    import cognee
     return await cognee.recall(question)
 
 
 async def _improve():
+    import cognee
     try:
         await cognee.improve()
     except Exception as e:
@@ -110,6 +77,7 @@ async def _improve():
 
 
 async def _forget():
+    import cognee
     try:
         await cognee.forget()
     except Exception as e:
