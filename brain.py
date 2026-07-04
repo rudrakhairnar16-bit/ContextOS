@@ -7,17 +7,6 @@ import asyncio
 import threading
 from concurrent.futures import TimeoutError as FutureTimeoutError
 
-# Cognee runs on its own background thread with a dedicated event loop.
-# This avoids "bound to a different event loop" errors with Streamlit.
-_cognee_loop = asyncio.new_event_loop()
-
-def _run_cognee_loop():
-    asyncio.set_event_loop(_cognee_loop)
-    _cognee_loop.run_forever()
-
-_thread = threading.Thread(target=_run_cognee_loop, daemon=True)
-_thread.start()
-
 from typing import Any, List
 from dotenv import load_dotenv
 
@@ -51,17 +40,39 @@ os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
 os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
-import cognee
+# Cognee runs on its own background thread so async locks bind to a
+# dedicated event loop, avoiding "bound to a different event loop" errors.
+_cognee_loop = asyncio.new_event_loop()
 
-cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
-cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
-cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
-cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
-cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
-cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
-cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
-cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
-cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
+async def _init_cognee():
+    import cognee
+    cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
+    cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
+    cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
+    cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
+    cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
+    cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
+    cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
+    cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
+    cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
+    return cognee
+
+_cognee_init_done = threading.Event()
+_cognee = None
+
+def _run_cognee_loop():
+    global _cognee
+    asyncio.set_event_loop(_cognee_loop)
+    _cognee = _cognee_loop.run_until_complete(_init_cognee())
+    _cognee_init_done.set()
+    _cognee_loop.run_forever()
+
+_thread = threading.Thread(target=_run_cognee_loop, daemon=True)
+_thread.start()
+
+_cognee_init_done.wait(timeout=30)
+if _cognee is None:
+    raise RuntimeError("Cognee initialization timed out")
 
 
 COGNEE_TIMEOUT = 120
@@ -83,23 +94,23 @@ def run_async(coro):
 
 
 async def _remember(text: str):
-    await cognee.remember(text)
+    await _cognee.remember(text)
 
 
 async def _recall(question: str):
-    return await cognee.recall(question)
+    return await _cognee.recall(question)
 
 
 async def _improve():
     try:
-        await cognee.improve()
+        await _cognee.improve()
     except Exception as e:
         print(f"Improve note: {e}")
 
 
 async def _forget():
     try:
-        await cognee.forget()
+        await _cognee.forget()
     except Exception as e:
         print(f"Forget note: {e}")
 
