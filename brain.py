@@ -24,7 +24,7 @@ if not os.getenv("LLM_ENDPOINT"):
     os.environ["LLM_ENDPOINT"] = "https://api.groq.com/openai/v1"
 
 model = os.getenv("LLM_MODEL", "")
-if not model or "llama" in model.lower():
+if not model or "llama" in model.lower() or "mixtral" in model.lower():
     os.environ["LLM_MODEL"] = "openai/gpt-oss-20b"
 elif not model.startswith("openai/"):
     os.environ["LLM_MODEL"] = f"openai/{model}"
