@@ -56,8 +56,9 @@ def run_async(coro):
     try:
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(coro)
-    except Exception as e:
-        print(f"run_async error: {e}")
+    except Exception:
+        import traceback
+        traceback.print_exc()
         raise
 
 
@@ -84,12 +85,8 @@ async def _forget():
 
 
 def remember_this(text: str) -> bool:
-    try:
-        run_async(_remember(text))
-        return True
-    except Exception as e:
-        print(f"Remember error: {e}")
-        return False
+    run_async(_remember(text))
+    return True
 
 
 def ask_brain(question: str) -> List[Any]:
