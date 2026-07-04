@@ -40,37 +40,40 @@ os.environ.setdefault("EMBEDDING_PROVIDER", "fastembed")
 os.environ.setdefault("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 os.environ.setdefault("EMBEDDING_DIMENSIONS", "384")
 
-# Disable Cognee telemetry (avoids asyncio.Lock "bound to a different event loop" error)
 os.environ["TELEMETRY_DISABLED"] = "true"
 
-# Dedicated event loop for Cognee. Initialized on the main thread
-# first so all async locks bind to it during import, then kept alive
-# in a background thread.
-_cognee_loop = asyncio.new_event_loop()
+import cognee
 
-async def _init_cognee():
-    import cognee
-    cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
-    cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
-    cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
-    cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
-    cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
-    cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
-    cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
-    cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
-    cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
-    return cognee
+# Store the event loop on Cognee's module so it survives hot-reloads.
+# Streamlit Cloud may reload brain.py while Cognee's module stays cached
+# in sys.modules with its async locks still bound to the original loop.
+_cognee_loop = getattr(cognee, "__cognee_loop__", None)
+_cognee_initialized = getattr(cognee, "__cognee_initialized__", False)
 
-# Initialize Cognee on the main thread while importing, so module-level
-# async objects (locks, connections) bind to _cognee_loop.
-_cognee = _cognee_loop.run_until_complete(_init_cognee())
+if not _cognee_initialized:
+    _cognee_loop = asyncio.new_event_loop()
 
-# Keep the loop alive in a background thread for future operations.
-def _run_cognee_loop():
-    asyncio.set_event_loop(_cognee_loop)
-    _cognee_loop.run_forever()
+    async def _configure():
+        cognee.config.set_llm_provider(os.getenv("LLM_PROVIDER", "openai"))
+        cognee.config.set_llm_model(os.getenv("LLM_MODEL", "openai/llama-3.3-70b-versatile"))
+        cognee.config.set_llm_endpoint(os.getenv("LLM_ENDPOINT", "https://api.groq.com/openai/v1"))
+        cognee.config.set_llm_api_key(os.getenv("LLM_API_KEY", ""))
+        cognee.config.data_root_directory(os.environ["DATA_ROOT_DIRECTORY"])
+        cognee.config.system_root_directory(os.environ["SYSTEM_ROOT_DIRECTORY"])
+        cognee.config.set_embedding_provider(os.environ["EMBEDDING_PROVIDER"])
+        cognee.config.set_embedding_model(os.environ["EMBEDDING_MODEL"])
+        cognee.config.set_embedding_dimensions(int(os.environ["EMBEDDING_DIMENSIONS"]))
 
-threading.Thread(target=_run_cognee_loop, daemon=True).start()
+    _cognee_loop.run_until_complete(_configure())
+
+    def _run_cognee_loop():
+        asyncio.set_event_loop(_cognee_loop)
+        _cognee_loop.run_forever()
+
+    threading.Thread(target=_run_cognee_loop, daemon=True).start()
+
+    cognee.__cognee_loop__ = _cognee_loop
+    cognee.__cognee_initialized__ = True
 
 
 COGNEE_TIMEOUT = 120
@@ -92,23 +95,23 @@ def run_async(coro):
 
 
 async def _remember(text: str):
-    await _cognee.remember(text)
+    await cognee.remember(text)
 
 
 async def _recall(question: str):
-    return await _cognee.recall(question)
+    return await cognee.recall(question)
 
 
 async def _improve():
     try:
-        await _cognee.improve()
+        await cognee.improve()
     except Exception as e:
         print(f"Improve note: {e}")
 
 
 async def _forget():
     try:
-        await _cognee.forget()
+        await cognee.forget()
     except Exception as e:
         print(f"Forget note: {e}")
 
