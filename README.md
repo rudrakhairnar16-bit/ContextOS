@@ -8,9 +8,17 @@
 [![Test](https://github.com/rudrakhairnar16-bit/ContextOS/actions/workflows/test.yml/badge.svg)](https://github.com/rudrakhairnar16-bit/ContextOS/actions/workflows/test.yml)
 [![Live App](https://img.shields.io/badge/Live-Streamlit%20Cloud-FF4B4B)](https://contextos-developer-second-brain.streamlit.app)
 
-> 🎥 **Watch the demo video:** [YouTube](https://youtu.be/KXRg5jHmO4M)
+---
 
-**Live app:** [contextos-developer-second-brain.streamlit.app](https://contextos-developer-second-brain.streamlit.app)
+## Links
+
+| | |
+|---|---|
+| 🎥 **Demo Video** | [YouTube](https://youtu.be/KXRg5jHmO4M) |
+| 📝 **Blog Post** | [Hashnode](https://contextos-second-brain-for-developer.hashnode.dev/contextos-second-brain-for-developer-the-hangover-part-ai-hackathon) |
+| 💼 **LinkedIn** | [Rudra Khaire](https://www.linkedin.com/in/rudra-khaire-2657a5381) |
+| 🐙 **GitHub** | [rudrakhairnar16-bit/ContextOS](https://github.com/rudrakhairnar16-bit/ContextOS) |
+| 🌐 **Live App** | [contextos-developer-second-brain.streamlit.app](https://contextos-developer-second-brain.streamlit.app) |
 
 ---
 
@@ -77,10 +85,23 @@ LanceDB (vector DB) + NetworkX (graph)
 |---|---|
 | **UI** | Streamlit 1.58.0 |
 | **Memory Engine** | Cognee 1.2.2 (graph + vector) |
-| **LLM** | Groq API (gpt-oss-20b) via OpenAI-compatible SDK |
+| **LLM** | Groq — llama-3.1-8b-instant via OpenAI-compatible SDK |
 | **Embeddings** | FastEmbed (all-MiniLM-L6-v2, 384d) — local, no API key needed |
 | **Vector DB** | LanceDB 0.33.0 |
 | **Graph** | NetworkX 3.6.1 + RDflib 7.1.4 |
+
+---
+
+## How Cognee Is Used
+
+ContextOS deeply integrates all four Cognee memory lifecycle APIs:
+
+- **`remember()`** — Ingests code files, text notes, architecture decisions, and bug reports into Cognee's hybrid graph+vector knowledge store. Each data type is classified and stored with metadata tags.
+- **`recall()`** — Powers the chat interface. User queries are routed through Cognee's semantic search and graph traversal to return contextually relevant answers.
+- **`improve()`** — Runs automatically after every 5 ingests to enrich the knowledge graph, prune stale nodes, and adapt weights.
+- **`forget()`** — Available via the UI to surgically delete specific datasets or memories.
+
+The app also leverages Cognee's pipeline system: `classify_documents`, `extract_chunks_from_documents`, and `extract_graph_and_summarize`.
 
 ---
 
@@ -93,7 +114,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. **Get a Groq API key** — Sign up at [console.groq.com](https://console.groq.com) (free tier includes gpt-oss-20b).
+2. **Get a Groq API key** — Sign up at [console.groq.com](https://console.groq.com) (free tier).
 
 3. **Configure `.env`:**
 ```
@@ -101,7 +122,7 @@ GROQ_API_KEY=gsk_your_groq_api_key_here
 LLM_API_KEY=gsk_your_groq_api_key_here
 LLM_PROVIDER=openai
 LLM_ENDPOINT=https://api.groq.com/openai/v1
-LLM_MODEL=openai/gpt-oss-20b
+LLM_MODEL=openai/llama-3.1-8b-instant
 EMBEDDING_PROVIDER=fastembed
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 EMBEDDING_DIMENSIONS=384
@@ -125,43 +146,12 @@ python main.py
 ```
 
 > ✅ If you see **"ALL 4 COGNEE OPERATIONS VERIFIED!"** the backend is working.
-> `main.py` tests all 4 Cognee operations: `remember()` stores 3 sample memories (decision, bug, note), `recall()` queries the knowledge graph, `improve()` refines it, and `forget()` cleans up.
-> **This is the quickest way to verify ContextOS works with your API key.**
 
 Or run unit tests:
 ```
 pip install pytest
 pytest tests/ -v
 ```
-
----
-
-## Quick Test (No Installation Required)
-
-If the live Streamlit app is down or you want to test offline:
-
-1. **Download** the repo as ZIP or clone it to your desktop
-2. **Add your Groq API key** — Sign up at [console.groq.com](https://console.groq.com). Create a `.env` file in the project folder:
-```
-GROQ_API_KEY=gsk_your_groq_api_key_here
-LLM_API_KEY=gsk_your_groq_api_key_here
-LLM_PROVIDER=openai
-LLM_ENDPOINT=https://api.groq.com/openai/v1
-LLM_MODEL=openai/gpt-oss-20b
-EMBEDDING_PROVIDER=fastembed
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-EMBEDDING_DIMENSIONS=384
-ENABLE_BACKEND_ACCESS_CONTROL=false
-COGNEE_SKIP_CONNECTION_TEST=true
-```
-3. **Run this single command** to verify everything works:
-```
-python main.py
-```
-> The output walks you through all 4 Cognee operations. If all pass, launch the full UI with:
-> ```
-> streamlit run app.py
-> ```
 
 ---
 
@@ -173,24 +163,8 @@ Deployed on **Streamlit Community Cloud**. Auto-deploys on every push to `main`.
 
 ---
 
-## Notes
-
-- **Hackathon project** — built for The Hangover Part AI Hackathon by WeMakeDevs x Cognee
-- **FastEmbed** for local embeddings — no OpenAI embedding API key required
-- Uses **Groq** for LLM inference (free tier, gpt-oss-20b)
-
----
-
 ## Built For
 
 **The Hangover Part AI Hackathon** — WeMakeDevs x Cognee
 
----
-
-## Links
-
-- 🎥 **Demo Video:** [YouTube](https://youtu.be/KXRg5jHmO4M)
-- 📝 **Blog Post:** [Hashnode](https://contextos-second-brain-for-developer.hashnode.dev/contextos-second-brain-for-developer-the-hangover-part-ai-hackathon)
-- 💼 **LinkedIn:** [Rudra Khaire](https://www.linkedin.com/in/rudra-khaire-2657a5381)
-- 🐙 **GitHub:** [rudrakhairnar16-bit/ContextOS](https://github.com/rudrakhairnar16-bit/ContextOS)
-- 🌐 **Live App:** [contextos-developer-second-brain.streamlit.app](https://contextos-developer-second-brain.streamlit.app)
+*Built solo by Rudra Keyur Khaire. Developed with Claude, Gemini, and OpeCode (declared as per Rule 8). YouTube video edited by Hetu.*
