@@ -8,7 +8,7 @@
 [![Test](https://github.com/rudrakhairnar16-bit/ContextOS/actions/workflows/test.yml/badge.svg)](https://github.com/rudrakhairnar16-bit/ContextOS/actions/workflows/test.yml)
 [![Live App](https://img.shields.io/badge/Live-Streamlit%20Cloud-FF4B4B)](https://contextos-developer-second-brain.streamlit.app)
 
-> 🎥 **Watch the demo video:** [YouTube Link — Add your video URL here]
+> 🎥 **Watch the demo video:** [YouTube](https://youtu.be/KXRg5jHmO4M)
 
 **Live app:** [contextos-developer-second-brain.streamlit.app](https://contextos-developer-second-brain.streamlit.app)
 
@@ -184,3 +184,13 @@ Deployed on **Streamlit Community Cloud**. Auto-deploys on every push to `main`.
 ## Built For
 
 **The Hangover Part AI Hackathon** — WeMakeDevs x Cognee
+
+---
+
+## Links
+
+- 🎥 **Demo Video:** [YouTube](https://youtu.be/KXRg5jHmO4M)
+- 📝 **Blog Post:** [Hashnode](https://contextos-second-brain-for-developer.hashnode.dev/contextos-second-brain-for-developer-the-hangover-part-ai-hackathon)
+- 💼 **LinkedIn:** [Rudra Khaire](https://www.linkedin.com/in/rudra-khaire-2657a5381)
+- 🐙 **GitHub:** [rudrakhairnar16-bit/ContextOS](https://github.com/rudrakhairnar16-bit/ContextOS)
+- 🌐 **Live App:** [contextos-developer-second-brain.streamlit.app](https://contextos-developer-second-brain.streamlit.app)
